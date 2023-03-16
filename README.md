@@ -2,7 +2,13 @@
 
 This is an adapted version of the Juno Unity contract to allow DAOs with non-staked treasuries to protect them against an attacker draining funds.
 
-It requires a cooldown to withdraw funds to the specified `withdrawal_address`.
+The withdrawal address:
+
+1. Is the only address that can request a withdraw of funds
+2. Is the only address that funds can be sent to
+3. Has to wait for a cooldown to complete to execute the funds withdrawal
+
+The assumption made by this contract is that the `withdrawal_address` would be a DAO that owns this contract, and escrows its treasury here, if that treasury is not staked. This means that even in the event of a VP attack, these funds cannot be moved by an attacker. NOTE that this does not protect against the minter being compromised on any CW20 contract associated with the owner DAO.
 
 At any time, the withdraw can be cancelled by the `override_address`.
 
