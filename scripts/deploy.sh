@@ -7,7 +7,7 @@ then
 fi
 
 IMAGE_TAG=${2:-"v12.0.0"}
-CONTAINER_NAME="juno_dao_escrow"
+CONTAINER_NAME="juno_howl"
 BINARY="docker exec -i $CONTAINER_NAME junod"
 DENOM='ujunox'
 CHAIN_ID='testing'
@@ -19,8 +19,15 @@ echo "Building $IMAGE_TAG"
 echo "Configured Block Gas Limit: $BLOCK_GAS_LIMIT"
 
 # orphans
+docker stop $CONTAINER_NAME
 docker kill $CONTAINER_NAME
+sleep 1
 docker volume rm -f junod_data
+
+if [ $(arch) = "arm64" ]; then 
+  OARCH="-arm64"
+  AARCH="-aarch64"
+fi
 
 # run junod docker
 docker run --rm -d --name $CONTAINER_NAME \
@@ -35,10 +42,10 @@ docker run --rm -d --name $CONTAINER_NAME \
 docker run --rm -v "$(pwd)":/code \
   --mount type=volume,source="$(basename "$(pwd)")_cache",target=/code/target \
   --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
-  cosmwasm/rust-optimizer:0.12.8
+  cosmwasm/rust-optimizer$OARCH:0.12.8
 
 # copy wasm to docker container
-docker cp artifacts/dao_escrow.wasm $CONTAINER_NAME:/dao_escrow.wasm
+docker cp artifacts/dao_escrow$AARCH.wasm $CONTAINER_NAME:/dao_escrow.wasm
 
 # validator addr
 VALIDATOR_ADDR=$($BINARY keys show validator --address)
@@ -56,7 +63,7 @@ echo "TX Flags: $TXFLAG"
 set -e
 
 # upload wasm
-CONTRACT_CODE=$($BINARY tx wasm store "/dao_escrow.wasm" --from validator $TXFLAG --output json | jq -r '.logs[0].events[-1].attributes[0].value')
+CONTRACT_CODE=$($BINARY tx wasm store "/dao_escrow.wasm" --from validator $TXFLAG --output json | jq -r '.logs[0].events[-1].attributes[-1].value')
 echo "Stored: $CONTRACT_CODE"
 
 BALANCE_2=$($BINARY q bank balances $VALIDATOR_ADDR)
