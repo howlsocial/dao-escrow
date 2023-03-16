@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "InstantiateMsg",
+  "description": "Basic configuration for the contract The contract will have no admin so this will need to be set correctly",
+  "type": "object",
+  "required": [
+    "enable_cw20_receive",
+    "native_denom",
+    "override_address",
+    "set_withdraw_as_immutable",
+    "withdraw_address",
+    "withdraw_delay_in_days"
+  ],
+  "properties": {
+    "enable_cw20_receive": {
+      "type": "boolean"
+    },
+    "native_denom": {
+      "type": "string"
+    },
+    "override_address": {
+      "type": "string"
+    },
+    "set_withdraw_as_immutable": {
+      "type": "boolean"
+    },
+    "withdraw_address": {
+      "type": "string"
+    },
+    "withdraw_delay_in_days": {
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0.0
+    }
+  }
+}

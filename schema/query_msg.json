@@ -1,0 +1,58 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "QueryMsg",
+  "anyOf": [
+    {
+      "description": "This returns the configured contract info",
+      "type": "object",
+      "required": [
+        "get_config"
+      ],
+      "properties": {
+        "get_config": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "If a withdrawal has been initiated, this gets the timestamp that it will be ready to claim",
+      "type": "object",
+      "required": [
+        "get_withdrawal_ready_time"
+      ],
+      "properties": {
+        "get_withdrawal_ready_time": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "Checks if a withdrawal is possible yet returns a bool response",
+      "type": "object",
+      "required": [
+        "is_withdrawal_ready"
+      ],
+      "properties": {
+        "is_withdrawal_ready": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "Checks if a withdrawal has been requested i.e. if the withdrawal requested is None",
+      "type": "object",
+      "required": [
+        "get_withdrawal_requested"
+      ],
+      "properties": {
+        "get_withdrawal_requested": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    }
+  ]
+}
