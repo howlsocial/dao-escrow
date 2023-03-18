@@ -58,6 +58,7 @@ mod tests {
     fn mock_instantiate(
         days: u64,
         withdraw_immutable: bool,
+        override_immutable: bool,
     ) -> (App, CwTemplateContract, Addr, CwTemplateContract, Addr) {
         let mut app = mock_app();
         let escrow_contract_id = app.store_code(escrow_contract_template());
@@ -70,6 +71,7 @@ mod tests {
 
         let msg = InstantiateMsg {
             set_withdraw_as_immutable: withdraw_immutable,
+            set_override_as_immutable: override_immutable,
             enable_cw20_receive: false,
             override_address,
             withdraw_address,
@@ -107,77 +109,6 @@ mod tests {
             initial_balances: vec![Cw20Coin {
                 address: escrow_contract_addr.to_string(),
                 amount: Uint128::new(5_000_000),
-            }],
-        };
-
-        let cw20_contract_addr = app
-            .instantiate_contract(
-                cw20_id,
-                Addr::unchecked(USER), // in reality we would set --no-admin
-                &cw20_instantiate_msg,
-                &[],
-                "cw20",
-                None,
-            )
-            .unwrap();
-
-        let cw20_contract = CwTemplateContract(cw20_contract_addr.clone());
-
-        (
-            app,
-            escrow_contract,
-            escrow_contract_addr,
-            cw20_contract,
-            cw20_contract_addr,
-        )
-    }
-
-    fn _mock_instantiate_no_balance() -> (App, CwTemplateContract, Addr, CwTemplateContract, Addr) {
-        let mut app = mock_app();
-        let escrow_contract_id = app.store_code(escrow_contract_template());
-        let cw20_id = app.store_code(contract_cw20());
-
-        let withdraw_address = String::from(WITHDRAW_ADDRESS); // in reality this would be e.g. juno16g2rahf5846rxzp3fwlswy08fz8ccuwk03k57y
-        let _validated_addr = Addr::unchecked(&withdraw_address);
-        let withdraw_delay_in_days = 28; // this is what we are expecting to set it to
-        let override_address = String::from("override-dao-or-multisig-address");
-
-        let msg = InstantiateMsg {
-            set_withdraw_as_immutable: true,
-            enable_cw20_receive: false,
-            override_address,
-            withdraw_address,
-            withdraw_delay_in_days,
-            native_denom: NATIVE_DENOM.to_string(),
-        };
-
-        let escrow_contract_addr = app
-            .instantiate_contract(
-                escrow_contract_id,
-                Addr::unchecked(USER), // in reality we would set --no-admin
-                &msg,
-                &[],
-                "dao-escrow",
-                None,
-            )
-            .unwrap();
-
-        let escrow_contract = CwTemplateContract(escrow_contract_addr.clone());
-
-        app.update_block(next_block);
-
-        let cw20_instantiate_msg = CW20InstantiateMsg {
-            symbol: "HOWL".to_string(),
-            name: "Howl Token".to_string(),
-            mint: Some(MinterResponse {
-                minter: USER.to_string(),
-                cap: None,
-            }),
-            marketing: None,
-            decimals: 6,
-            initial_balances: vec![Cw20Coin {
-                address: escrow_contract_addr.to_string(),
-                amount: Uint128::new(100),
             }],
         };
 
@@ -314,7 +245,8 @@ mod tests {
 
         #[test]
         fn start_withdraw_native() {
-            let (mut app, _cw_template_contract, contract_addr, _, _) = mock_instantiate(28, true);
+            let (mut app, _cw_template_contract, contract_addr, _, _) =
+                mock_instantiate(28, true, true);
 
             let withdraw_address = String::from(WITHDRAW_ADDRESS);
             let _validated_addr = Addr::unchecked(&withdraw_address);
@@ -350,7 +282,7 @@ mod tests {
         #[test]
         fn start_withdraw_then_claim_native() {
             let (mut app, cw_template_contract, contract_addr, _, cw20_contract_addr) =
-                mock_instantiate(1, true);
+                mock_instantiate(1, true, true);
 
             let withdraw_address = String::from(WITHDRAW_ADDRESS);
             let validated_addr = Addr::unchecked(&withdraw_address);
@@ -438,9 +370,47 @@ mod tests {
         }
 
         #[test]
+        fn override_fails_if_no_withdrawal() {
+            let (mut app, _cw_template_contract, contract_addr, _, cw20_contract_addr) =
+                mock_instantiate(1, true, true);
+
+            let withdraw_address = String::from(WITHDRAW_ADDRESS);
+            let validated_addr = Addr::unchecked(&withdraw_address);
+
+            // hit override even though there's no withdrawal in flight
+            exec_override(
+                &mut app,
+                OVERRIDE_ADDRESS.to_string(),
+                contract_addr.clone(),
+            )
+            .unwrap_err(); // it errors
+
+            // contract balance should be full
+            let contract_balance = get_balance(&mut app, &contract_addr);
+            assert_eq!(contract_balance, coins(3_000_000, NATIVE_DENOM));
+
+            // withdrawer should have no balance
+            let withdrawer_balance = get_balance(&mut app, &validated_addr);
+            assert_eq!(withdrawer_balance, &[]);
+
+            // check cw20 balances are unaffected
+            let escrow_contract_cw20_balance = get_cw20_balance(
+                &mut app,
+                cw20_contract_addr.clone(),
+                contract_addr.to_string(),
+            );
+            assert_eq!(escrow_contract_cw20_balance, Uint128::new(5_000_000));
+
+            // withdrawer should have no balance
+            let withdrawer_balance =
+                get_cw20_balance(&mut app, cw20_contract_addr, withdraw_address);
+            assert_eq!(withdrawer_balance, Uint128::new(0));
+        }
+
+        #[test]
         fn start_withdraw_then_override_native() {
             let (mut app, cw_template_contract, contract_addr, _, cw20_contract_addr) =
-                mock_instantiate(1, true);
+                mock_instantiate(1, true, true);
 
             let withdraw_address = String::from(WITHDRAW_ADDRESS);
             let validated_addr = Addr::unchecked(&withdraw_address);
@@ -552,7 +522,7 @@ mod tests {
                 escrow_contract_addr,
                 _cw20_contract,
                 cw20_contract_addr,
-            ) = mock_instantiate(1, true);
+            ) = mock_instantiate(1, true, true);
 
             let withdraw_address = String::from(WITHDRAW_ADDRESS);
             let validated_addr = Addr::unchecked(&withdraw_address);
@@ -642,7 +612,7 @@ mod tests {
 
         #[test]
         fn start_claim_no_withdraw() {
-            let (mut app, cw_template_contract, _, _, _) = mock_instantiate(1, true);
+            let (mut app, cw_template_contract, _, _, _) = mock_instantiate(1, true, true);
 
             let withdraw_address = String::from(WITHDRAW_ADDRESS);
             let validated_addr = Addr::unchecked(&withdraw_address);
@@ -657,7 +627,8 @@ mod tests {
 
         #[test]
         fn start_withdraw_fails_with_wrong_address() {
-            let (mut app, _cw_template_contract, contract_addr, _, _) = mock_instantiate(28, true);
+            let (mut app, _cw_template_contract, contract_addr, _, _) =
+                mock_instantiate(28, true, true);
 
             // have a go at withdrawing as an address
             // that isn't the withdraw addr
@@ -672,8 +643,46 @@ mod tests {
         }
 
         #[test]
+        fn change_override_address_fails_if_immutable() {
+            let (mut app, _cw_template_contract, contract_addr, _, _) =
+                mock_instantiate(28, true, true);
+            let new_address = "some-random-address";
+
+            // if a random tries to change it, then failtown
+            exec_update_override_address(
+                &mut app,
+                new_address.to_string(),
+                contract_addr.clone(),
+                new_address.to_string(),
+            )
+            .unwrap_err();
+
+            let config = get_config(&mut app, contract_addr.clone()).unwrap();
+
+            assert_eq!(config.override_address, OVERRIDE_ADDRESS);
+
+            // but this sender is legit
+            // however override is set as immutable
+            // so it will error
+            exec_update_override_address(
+                &mut app,
+                OVERRIDE_ADDRESS.to_string(),
+                contract_addr.clone(),
+                new_address.to_string(),
+            )
+            .unwrap_err();
+
+            let config_two = get_config(&mut app, contract_addr).unwrap();
+            assert_eq!(
+                config_two.override_address,
+                Addr::unchecked(OVERRIDE_ADDRESS)
+            );
+        }
+
+        #[test]
         fn change_override_address() {
-            let (mut app, _cw_template_contract, contract_addr, _, _) = mock_instantiate(28, true);
+            let (mut app, _cw_template_contract, contract_addr, _, _) =
+                mock_instantiate(28, true, false);
             let new_address = "some-random-address";
 
             // if a random tries to change it, then failtown
@@ -704,7 +713,8 @@ mod tests {
 
         #[test]
         fn change_withdraw_address() {
-            let (mut app, _cw_template_contract, contract_addr, _, _) = mock_instantiate(28, false);
+            let (mut app, _cw_template_contract, contract_addr, _, _) =
+                mock_instantiate(28, false, true);
             let new_address = "some-random-address";
 
             // should still fail if some random calls it
@@ -733,7 +743,8 @@ mod tests {
 
         #[test]
         fn change_withdraw_address_fails_if_immutable() {
-            let (mut app, _cw_template_contract, contract_addr, _, _) = mock_instantiate(28, true);
+            let (mut app, _cw_template_contract, contract_addr, _, _) =
+                mock_instantiate(28, true, true);
 
             // this will error
             exec_update_withdraw_address(

@@ -44,4 +44,7 @@ pub enum ContractError {
 
     #[error("The Withdrawal address was set as immutable on contract instantiation")]
     WithdrawalAddressIsImmutable {},
+
+    #[error("The Override address was set as immutable on contract instantiation")]
+    OverrideAddressIsImmutable {},
 }

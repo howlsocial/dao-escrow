@@ -83,7 +83,8 @@ INIT='{
   "override_address": "juno1kwzwzeytzp7sc0qt6uk7dr0uvvcln5qsn3wa9c",
   "withdraw_delay_in_days": 28,
   "enable_cw20_receive": false,
-  "set_withdraw_as_immutable": true
+  "set_withdraw_as_immutable": true,
+  "set_override_as_immutable": true
 }'
 echo "$INIT" | jq .
 

@@ -32,9 +32,10 @@ pub fn instantiate(
     let config = Config {
         override_address: override_address.clone(),
         withdraw_address: withdraw_address.clone(),
+        set_override_as_immutable: msg.set_override_as_immutable,
+        set_withdraw_as_immutable: msg.set_withdraw_as_immutable,
         withdraw_delay_in_days: msg.withdraw_delay_in_days,
         native_denom: msg.native_denom,
-        set_withdraw_as_immutable: msg.set_withdraw_as_immutable,
         enable_cw20_receive: msg.enable_cw20_receive,
     };
     set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;

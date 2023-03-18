@@ -327,6 +327,12 @@ pub fn override_withdraw(
     let config = CONFIG.load(deps.storage)?;
     let override_address = config.override_address;
 
+    // explicitly crash out if no withdrawal exists
+    let withdrawal = WITHDRAWAL_READY.may_load(deps.storage)?;
+    if withdrawal.is_none() {
+        return Err(ContractError::WithdrawalNotRequested {});
+    }
+
     // before continuing, only override_address can call this
     ensure_eq!(
         info.sender,
@@ -356,6 +362,13 @@ pub fn update_override_address(
         ContractError::Unauthorized {}
     );
 
+    // then check config
+    ensure_eq!(
+        config.set_override_as_immutable,
+        false,
+        ContractError::OverrideAddressIsImmutable {}
+    );
+
     let new_override_address = deps.api.addr_validate(&address)?;
 
     // update
@@ -365,6 +378,7 @@ pub fn update_override_address(
         withdraw_delay_in_days: config.withdraw_delay_in_days,
         native_denom: config.native_denom,
         set_withdraw_as_immutable: config.set_withdraw_as_immutable,
+        set_override_as_immutable: config.set_override_as_immutable,
         enable_cw20_receive: config.enable_cw20_receive,
     };
 
@@ -411,6 +425,7 @@ pub fn update_withdrawal_address(
         withdraw_delay_in_days: config.withdraw_delay_in_days,
         native_denom: config.native_denom,
         set_withdraw_as_immutable: config.set_withdraw_as_immutable,
+        set_override_as_immutable: config.set_override_as_immutable,
         enable_cw20_receive: config.enable_cw20_receive,
     };
 

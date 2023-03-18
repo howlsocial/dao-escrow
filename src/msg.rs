@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 pub struct InstantiateMsg {
     pub enable_cw20_receive: bool, // should the cw20 receive functionality be enabled? (cannot be changed later)
+    pub set_override_as_immutable: bool, // should the override_address be updateable? (cannot be changed later)
     pub set_withdraw_as_immutable: bool, // should the withdraw_address be updateable? (cannot be changed later)
     pub override_address: String,        // the deadman switch address and admin
     pub withdraw_address: String,        // the address whose funds are locked in this contract

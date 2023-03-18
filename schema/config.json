@@ -6,6 +6,7 @@
     "enable_cw20_receive",
     "native_denom",
     "override_address",
+    "set_override_as_immutable",
     "set_withdraw_as_immutable",
     "withdraw_address",
     "withdraw_delay_in_days"
@@ -19,6 +20,9 @@
     },
     "override_address": {
       "$ref": "#/definitions/Addr"
+    },
+    "set_override_as_immutable": {
+      "type": "boolean"
     },
     "set_withdraw_as_immutable": {
       "type": "boolean"

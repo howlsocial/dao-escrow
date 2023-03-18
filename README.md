@@ -39,6 +39,7 @@ The instantiation message has several configurable parameters.
 ```rs
 pub struct InstantiateMsg {
     pub enable_cw20_receive: bool, // should the cw20 receive functionality be enabled? (cannot be changed later)
+    pub set_override_as_immutable: bool, // should the override_address be updateable? (cannot be changed later)
     pub set_withdraw_as_immutable: bool, // should the withdraw_address be updateable? (cannot be changed later)
     pub override_address: String,        // the deadman switch address and admin
     pub withdraw_address: String,        // the address whose funds are locked in this contract
@@ -47,7 +48,7 @@ pub struct InstantiateMsg {
 }
 ```
 
-If in doubt, you should set `enable_cw20_receive` to `false` and `set_withdraw_as_immutable` to false. ONLY the `override_address` can change the `withdraw_address` or `override_address` at a later date.
+If in doubt, you should set `enable_cw20_receive` to `false`, `set_withdraw_as_immutable` to false, and `set_override_as_immutable` to `false`. ONLY the `override_address` can change the `withdraw_address` or `override_address` at a later date.
 
 ### Withdraw
 

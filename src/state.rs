@@ -8,6 +8,7 @@ use cw_storage_plus::{Item, Map};
 pub struct Config {
     pub enable_cw20_receive: bool,
     pub set_withdraw_as_immutable: bool,
+    pub set_override_as_immutable: bool,
     pub withdraw_address: Addr,
     pub override_address: Addr,
     pub withdraw_delay_in_days: u64,
