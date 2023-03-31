@@ -28,7 +28,7 @@
       "additionalProperties": false
     },
     {
-      "description": "When the NATIVE funds are ready to be claimed, this allows them to actually be claimed specify the native denom and amount this can only be executed by the withdrawal_address this also resets the timer once complete",
+      "description": "When the NATIVE funds are ready to be claimed, this allows them to actually be claimed specify the native denom this can only be executed by the withdrawal_address this also resets the timer once complete",
       "type": "object",
       "required": [
         "execute_native_withdraw"
@@ -37,13 +37,9 @@
         "execute_native_withdraw": {
           "type": "object",
           "required": [
-            "amount",
             "denom"
           ],
           "properties": {
-            "amount": {
-              "$ref": "#/definitions/Uint128"
-            },
             "denom": {
               "type": "string"
             }
@@ -62,15 +58,11 @@
         "execute_c_w20_withdraw": {
           "type": "object",
           "required": [
-            "address",
-            "amount"
+            "address"
           ],
           "properties": {
             "address": {
               "type": "string"
-            },
-            "amount": {
-              "$ref": "#/definitions/Uint128"
             }
           }
         }
@@ -87,15 +79,11 @@
         "execute_escrow_c_w20_withdraw": {
           "type": "object",
           "required": [
-            "address",
-            "amount"
+            "address"
           ],
           "properties": {
             "address": {
               "type": "string"
-            },
-            "amount": {
-              "$ref": "#/definitions/Uint128"
             }
           }
         }

@@ -97,7 +97,6 @@ pub fn execute_withdraw(
     env: Env,
     info: MessageInfo,
     denom: String,
-    amount: Uint128,
 ) -> Result<Response, ContractError> {
     // get withdraw address
     let config = CONFIG.load(deps.storage)?;
@@ -126,18 +125,16 @@ pub fn execute_withdraw(
                     wr.denom_or_address,
                     ContractError::WithdrawalDenomMismatch {}
                 );
-                ensure_eq!(
-                    amount,
-                    wr.amount,
-                    ContractError::WithdrawalAmountMismatch {}
-                );
 
                 // set up a bank send to the withdraw address
                 // from this contract
                 // for the amount
                 let msgs: Vec<CosmosMsg> = vec![BankMsg::Send {
                     to_address: withdraw_address.to_string(),
-                    amount: vec![Coin { denom, amount }],
+                    amount: vec![Coin {
+                        denom,
+                        amount: wr.amount,
+                    }],
                 }
                 .into()];
 
@@ -164,7 +161,6 @@ pub fn execute_cw20_withdraw(
     env: Env,
     info: MessageInfo,
     address: String,
-    amount: Uint128,
 ) -> Result<Response, ContractError> {
     // get withdraw address
     let config = CONFIG.load(deps.storage)?;
@@ -198,18 +194,13 @@ pub fn execute_cw20_withdraw(
                     validated_requested_cw20_addr,
                     ContractError::WithdrawalCW20Mismatch {}
                 );
-                ensure_eq!(
-                    amount,
-                    wr.amount,
-                    ContractError::WithdrawalAmountMismatch {}
-                );
 
                 // put together msg
                 let msg = WasmMsg::Execute {
                     contract_addr: validated_cw20_addr.to_string(),
                     msg: to_binary(&Cw20ExecuteMsg::Transfer {
                         recipient: withdraw_address.to_string(),
-                        amount,
+                        amount: wr.amount,
                     })?,
                     funds: vec![],
                 };
@@ -237,7 +228,6 @@ pub fn execute_escrow_cw20_withdraw(
     env: Env,
     info: MessageInfo,
     address: String,
-    amount: Uint128,
 ) -> Result<Response, ContractError> {
     // get withdraw address
     let config = CONFIG.load(deps.storage)?;
@@ -279,15 +269,10 @@ pub fn execute_escrow_cw20_withdraw(
                     validated_requested_cw20_addr,
                     ContractError::WithdrawalCW20Mismatch {}
                 );
-                ensure_eq!(
-                    amount,
-                    wr.amount,
-                    ContractError::WithdrawalAmountMismatch {}
-                );
 
                 // first, find new balance
                 let new_balance = cw20_balance
-                    .checked_sub(amount)
+                    .checked_sub(wr.amount)
                     .map_err(|_| ContractError::CW20BalanceError {})?;
 
                 // call the cw20 and transfer the balance to withdraw_address
@@ -295,7 +280,7 @@ pub fn execute_escrow_cw20_withdraw(
                     contract_addr: validated_cw20_addr.to_string(),
                     msg: to_binary(&Cw20ExecuteMsg::Transfer {
                         recipient: withdraw_address.to_string(),
-                        amount,
+                        amount: wr.amount,
                     })?,
                     funds: vec![],
                 };

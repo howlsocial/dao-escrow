@@ -60,14 +60,12 @@ pub fn execute(
             denom_or_address,
             amount,
         } => start_withdraw(deps, env, info, denom_or_address, amount),
-        ExecuteMsg::ExecuteNativeWithdraw { denom, amount } => {
-            execute_withdraw(deps, env, info, denom, amount)
+        ExecuteMsg::ExecuteNativeWithdraw { denom } => execute_withdraw(deps, env, info, denom),
+        ExecuteMsg::ExecuteCW20Withdraw { address } => {
+            execute_cw20_withdraw(deps, env, info, address)
         }
-        ExecuteMsg::ExecuteCW20Withdraw { address, amount } => {
-            execute_cw20_withdraw(deps, env, info, address, amount)
-        }
-        ExecuteMsg::ExecuteEscrowCW20Withdraw { address, amount } => {
-            execute_escrow_cw20_withdraw(deps, env, info, address, amount)
+        ExecuteMsg::ExecuteEscrowCW20Withdraw { address } => {
+            execute_escrow_cw20_withdraw(deps, env, info, address)
         }
         ExecuteMsg::OverrideWithdraw {} => override_withdraw(deps, env, info),
         ExecuteMsg::UpdateOverrideAddress { address } => {

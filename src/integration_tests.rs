@@ -341,7 +341,6 @@ mod tests {
 
             //now claim
             let claim_msg = ExecuteMsg::ExecuteNativeWithdraw {
-                amount: Uint128::new(2_000_000),
                 denom: NATIVE_DENOM.to_string(),
             };
             let claim_msg_res = cw_template_contract.call(claim_msg).unwrap();
@@ -485,7 +484,6 @@ mod tests {
             // now claim
             // this will also error
             let claim_msg = ExecuteMsg::ExecuteNativeWithdraw {
-                amount: Uint128::new(2_000_000),
                 denom: NATIVE_DENOM.to_string(),
             };
             let claim_msg_res = cw_template_contract.call(claim_msg).unwrap();
@@ -582,7 +580,6 @@ mod tests {
 
             //now claim
             let claim_msg = ExecuteMsg::ExecuteCW20Withdraw {
-                amount: Uint128::new(3_000_000),
                 address: cw20_contract_addr.to_string(),
             };
             let claim_msg_res = cw_template_contract.call(claim_msg).unwrap();
@@ -618,7 +615,6 @@ mod tests {
             let validated_addr = Addr::unchecked(&withdraw_address);
 
             let claim_msg = ExecuteMsg::ExecuteNativeWithdraw {
-                amount: Uint128::new(2_000_000),
                 denom: NATIVE_DENOM.to_string(),
             };
             let claim_msg_res = cw_template_contract.call(claim_msg).unwrap();

@@ -32,21 +32,21 @@ pub enum ExecuteMsg {
     },
     /// When the NATIVE funds are ready to be claimed,
     /// this allows them to actually be claimed
-    /// specify the native denom and amount
+    /// specify the native denom
     /// this can only be executed by the withdrawal_address
     /// this also resets the timer once complete
-    ExecuteNativeWithdraw { denom: String, amount: Uint128 },
+    ExecuteNativeWithdraw { denom: String },
     /// When the CW20 funds are ready to be claimed,
     /// this allows them to be claimed
     /// takes the address of the CW20 balance to be claimed
     /// this can only be executed by the withdrawal_address
-    ExecuteCW20Withdraw { address: String, amount: Uint128 },
+    ExecuteCW20Withdraw { address: String },
     /// When any CW20 funds custodied by
     /// this contract are claimable,
     /// this allows them to be claimed
     /// takes the address of the CW20 balance to be claimed
     /// this can only be executed by the withdrawal_address
-    ExecuteEscrowCW20Withdraw { address: String, amount: Uint128 },
+    ExecuteEscrowCW20Withdraw { address: String },
     /// If a withdrawal is in progress, cancel it
     /// this can only be executed by the override_address
     OverrideWithdraw {},
